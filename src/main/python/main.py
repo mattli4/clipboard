@@ -12,9 +12,12 @@ class MainWindow(QMainWindow):
     def __init__(self):
         self.ctrlcv = ControlCV()
         QMainWindow.__init__(self)
+        self.setWindowFlags(Qt.WindowStaysOnTopHint |
+                            Qt.WindowMinimizeButtonHint | Qt.WindowCloseButtonHint | Qt.MSWindowsFixedSizeDialogHint)
         self.setWindowTitle("ClipBoard")
         self.menu = self.menuBar()
         self.file_menu = self.menu.addMenu("File")
+        self.action_menu = self.menu.addMenu("Action")
         exit_action = QAction("Exit", self)
         exit_action.setShortcut("Ctrl+Q")
         exit_action.triggered.connect(self.exit_app)
@@ -22,6 +25,14 @@ class MainWindow(QMainWindow):
         load_action = QAction("Load", self)
         load_action.triggered.connect(self.load_from_file)
         self.file_menu.addAction(load_action)
+        switch_action = QAction("Switch", self)
+        switch_action.setCheckable(True)
+        switch_action.triggered.connect(self.switch_window)
+        self.action_menu.addAction(switch_action)
+        resize_action = QAction("Resize", self)
+        resize_action.setCheckable(True)
+        resize_action.triggered.connect(self.resize_window)
+        self.action_menu.addAction(resize_action)
         main_widget = QWidget()
         layout = QGridLayout()
         main_widget.setLayout(layout)
@@ -35,6 +46,37 @@ class MainWindow(QMainWindow):
     @Slot()
     def exit_app(self, checked):
         QApplication.quit()
+
+    def switch_window(self, checked):
+        is_resize_checked = self.action_menu.actions()[1].isChecked()
+        if not checked:
+            if is_resize_checked:
+                self.setWindowFlags(Qt.WindowStaysOnTopHint)
+            else:
+                self.setWindowFlags(Qt.WindowStaysOnTopHint |
+                    Qt.WindowMinimizeButtonHint | Qt.WindowCloseButtonHint | Qt.MSWindowsFixedSizeDialogHint)
+        else:
+            if is_resize_checked:
+                self.setWindowFlags(Qt.Widget)
+            else:
+                self.setWindowFlags(Qt.WindowMinimizeButtonHint | Qt.WindowCloseButtonHint | Qt.MSWindowsFixedSizeDialogHint)
+        self.show()
+
+    def resize_window(self, checked):
+        is_switch_checked = self.action_menu.actions()[0].isChecked()
+        if not checked:
+            if is_switch_checked:
+                self.setWindowFlags(
+                    Qt.WindowMinimizeButtonHint | Qt.WindowCloseButtonHint | Qt.MSWindowsFixedSizeDialogHint)
+            else:
+                self.setWindowFlags(Qt.WindowStaysOnTopHint |
+                                    Qt.WindowMinimizeButtonHint | Qt.WindowCloseButtonHint | Qt.MSWindowsFixedSizeDialogHint)
+        else:
+            if is_switch_checked:
+                self.setWindowFlags(Qt.Widget)
+            else:
+                self.setWindowFlags(Qt.WindowStaysOnTopHint)
+        self.show()
 
     def get_item_from_input(self):
         value, ok = QInputDialog.getMultiLineText(self, "please input text", "", "")
